@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-api
+
+
+  celery:
+    build: .
+    command: celery -A marketplace_integration worker -l info
+    container_name: celery-api
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DB_NAME=db
+      - DB_USER=admin
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DJANGO_ENVIRONMENT=prod
+    volumes:
+      - .:/app
+
+  api:
+    build: .
+    container_name: django-api
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DB_NAME=db
+      - DB_USER=admin
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DJANGO_ENVIRONMENT=prod
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+
+volumes:
+  postgres_data:
