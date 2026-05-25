@@ -7,11 +7,7 @@ from orders.models import Product
 @pytest.mark.django_db
 def test_create_product_no_authenticated_fails(api_client):
     url = reverse("products")
-
-    body = {"name": "Test1", "price": 99}
-
-    response = api_client.post(url, data=body)
-
+    response = api_client.post(url, data={})
     assert response.status_code == 401
 
 
@@ -52,7 +48,6 @@ def test_list_products_no_authenticated_fails(api_client):
 @pytest.mark.django_db
 def test_list_products_authenticated_success(api_client, create_products, headers):
     create_products = create_products(num=3)
-
     url = reverse("products")
     response = api_client.get(url, headers=headers)
 
@@ -65,9 +60,7 @@ def test_list_products_authenticated_success(api_client, create_products, header
 @pytest.mark.django_db
 def test_list_products_pagination_success(api_client, create_products, headers):
     create_products(num=5)
-
     params = {"page": 1, "page_size": 3}
-
     url = reverse("products")
     response = api_client.get(url, headers=headers, data=params)
 
